@@ -1117,6 +1117,7 @@ const getSHAForPullRequestEvent = (_o) => __awaiter(void 0, [_o], void 0, functi
     if (!inputs.skipInitialFetch) {
         core.info('Repository is shallow, fetching more history...');
         if (isShallow) {
+            core.warning(`Shallow check 1`);
             let prFetchExitCode = yield (0, utils_1.gitFetch)({
                 cwd: workingDirectory,
                 args: [
@@ -1127,7 +1128,9 @@ const getSHAForPullRequestEvent = (_o) => __awaiter(void 0, [_o], void 0, functi
                     `pull/${(_t = github.context.payload.pull_request) === null || _t === void 0 ? void 0 : _t.number}/head:${currentBranch}`
                 ]
             });
+            core.warning(`Shallow check 2: ${prFetchExitCode}`);
             if (prFetchExitCode !== 0) {
+                core.warning(`Shallow check 3: ${prFetchExitCode}`);
                 prFetchExitCode = yield (0, utils_1.gitFetch)({
                     cwd: workingDirectory,
                     args: [
@@ -1139,12 +1142,15 @@ const getSHAForPullRequestEvent = (_o) => __awaiter(void 0, [_o], void 0, functi
                         `+refs/heads/${currentBranch}*:refs/remotes/${remoteName}/${currentBranch}*`
                     ]
                 });
+                core.warning(`Shallow check 4: ${prFetchExitCode}`);
             }
             if (prFetchExitCode !== 0) {
+                core.warning(`Shallow check 5: ${prFetchExitCode}`);
                 throw new Error('Failed to fetch pull request branch. Please ensure "persist-credentials" is set to "true" when checking out the repository. See: https://github.com/actions/checkout#usage');
             }
             if (!inputs.sinceLastRemoteCommit) {
-                core.debug('Fetching target branch...');
+                core.warning('Fetching target branch...');
+                core.debug(`Fetching target branch... ${targetBranch}`);
                 yield (0, utils_1.gitFetch)({
                     cwd: workingDirectory,
                     args: [
@@ -1183,13 +1189,17 @@ const getSHAForPullRequestEvent = (_o) => __awaiter(void 0, [_o], void 0, functi
             }
         }
         core.info('Completed fetching more history.');
+        core.warning(`Completed fetching more history.`);
     }
     const currentSha = yield getCurrentSHA({ inputs, workingDirectory });
+    core.warning(`Checkpoint 1: current Sha: ${currentSha}`);
+    core.warning(`Checkpoint 2: current Sha: ${inputs.baseSha}`);
     let previousSha = yield (0, utils_1.cleanShaInput)({
         sha: inputs.baseSha,
         cwd: workingDirectory,
         token: inputs.token
     });
+    core.warning(`Checkpoint 3: previousSha: ${previousSha}`);
     let diff = '...';
     if (inputs.baseSha && inputs.sha && currentBranch && targetBranch) {
         if (previousSha === currentSha) {

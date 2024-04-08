@@ -345,6 +345,7 @@ export const getSHAForPullRequestEvent = async ({
   if (!inputs.skipInitialFetch) {
     core.info('Repository is shallow, fetching more history...')
     if (isShallow) {
+      core.warning(`Shallow check 1`)
       let prFetchExitCode = await gitFetch({
         cwd: workingDirectory,
         args: [
@@ -355,8 +356,10 @@ export const getSHAForPullRequestEvent = async ({
           `pull/${github.context.payload.pull_request?.number}/head:${currentBranch}`
         ]
       })
+      core.warning(`Shallow check 2: ${prFetchExitCode}`)
 
       if (prFetchExitCode !== 0) {
+        core.warning(`Shallow check 3: ${prFetchExitCode}`)
         prFetchExitCode = await gitFetch({
           cwd: workingDirectory,
           args: [
@@ -368,16 +371,19 @@ export const getSHAForPullRequestEvent = async ({
             `+refs/heads/${currentBranch}*:refs/remotes/${remoteName}/${currentBranch}*`
           ]
         })
+        core.warning(`Shallow check 4: ${prFetchExitCode}`)
       }
 
       if (prFetchExitCode !== 0) {
+        core.warning(`Shallow check 5: ${prFetchExitCode}`)
         throw new Error(
           'Failed to fetch pull request branch. Please ensure "persist-credentials" is set to "true" when checking out the repository. See: https://github.com/actions/checkout#usage'
         )
       }
 
       if (!inputs.sinceLastRemoteCommit) {
-        core.debug('Fetching target branch...')
+        core.warning('Fetching target branch...')
+        core.debug(`Fetching target branch... ${targetBranch}`)
         await gitFetch({
           cwd: workingDirectory,
           args: [
@@ -416,14 +422,18 @@ export const getSHAForPullRequestEvent = async ({
       }
     }
     core.info('Completed fetching more history.')
+    core.warning(`Completed fetching more history.`)
   }
 
   const currentSha = await getCurrentSHA({inputs, workingDirectory})
+  core.warning(`Checkpoint 1: current Sha: ${currentSha}`)
+  core.warning(`Checkpoint 2: current Sha: ${inputs.baseSha}`)
   let previousSha = await cleanShaInput({
     sha: inputs.baseSha,
     cwd: workingDirectory,
     token: inputs.token
   })
+  core.warning(`Checkpoint 3: previousSha: ${previousSha}`)
   let diff = '...'
 
   if (inputs.baseSha && inputs.sha && currentBranch && targetBranch) {
