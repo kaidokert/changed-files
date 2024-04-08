@@ -35,8 +35,9 @@ jobs:
     outputs:
       files_changed: ${{ steps.changed_files.outputs.files_changed }}
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
